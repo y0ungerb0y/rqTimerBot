@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таймер боссов Royal Quest</title>
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --beige: #F4E3D3;
+            --light-brown: #D6C7B9;
+            --warm-brown: #C4A484;
+            --accent: #A37A5D;
+            --text: #5A4A42;
+            --success: #8BA888;
+            --alert: #D4A59A;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--cream);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(var(--light-brown) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--beige);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .boss-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .boss-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--light-brown);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.8);
+        }
+
+        .boss-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .boss-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+        }
+
+        .boss-name:before {
+            content: "";
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--warm-brown);
+            margin-right: 10px;
+        }
+
+        .boss-timer {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .boss-spawn-time {
+            font-size: 14px;
+            color: var(--text);
+            margin-top: 8px;
+            padding-left: 20px;
+            font-style: italic;
+        }
+
+        .active {
+            color: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .coming-soon {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .time-passed {
+            color: var(--alert);
+        }
+
+        .refresh-btn {
+            display: block;
+            margin: 30px auto 10px;
+            padding: 12px 25px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--warm-brown);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            border: 1px solid var(--light-brown);
+            font-size: 16px;
+            background-color: rgba(255,255,255,0.7);
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(163, 122, 93, 0.2);
+        }
+
+        .notification-setting {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+        }
+
+        .notification-setting input {
+            accent-color: var(--accent);
+        }
+
+        .notification-setting label {
+            margin-left: 10px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--light-brown), transparent);
+            margin: 20px 0;
+        }
+
+        .header-icon {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        .sort-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .sort-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 1px solid var(--light-brown);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: var(--light-brown);
+            color: white;
+        }
+
+        .sort-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span class="header-icon">RQ</span>
+            Таймер боссов
+        </h1>
+
+        <input type="text" class="search-box" placeholder="🔍 Поиск боссов..." id="searchInput">
+
+        <div class="notification-setting">
+            <input type="checkbox" id="soundNotification" checked>
+            <label for="soundNotification">Звуковое уведомление при появлении босса</label>
+        </div>
+
+        <div class="sort-controls">
+            <button class="sort-btn active" id="sortTimeBtn">По времени</button>
+            <button class="sort-btn" id="sortNameBtn">По имени</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="boss-list" id="bossList">
+            <!-- Боссы будут добавляться через JavaScript -->
+        </div>
+
+        <button class="refresh-btn" onclick="updateTimers()">🔄 Обновить таймеры</button>
+    </div>
+
+    <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+
+    <script>
+        // Время респауна боссов в минутах
+        const bossData = [
+            { name: "Древний Энт", respawnTime: 88 },
+            { name: "Эдвард", respawnTime: 245 },
+            { name: "Тёмный Шаман", respawnTime: 205 },
+            { name: "Деструктор", respawnTime: 305 },
+            { name: "Королева Крыс", respawnTime: 125 },
+            { name: "Архон", respawnTime: 245 },
+            { name: "Гигантская Тортолла", respawnTime: 305 },
+            { name: "Зверомор", respawnTime: 245 },
+            { name: "Хьюго", respawnTime: 305 },
+            { name: "Воко", respawnTime: 605 },
+            { name: "Спрингбот", respawnTime: 485 }
+        ];
+
+        let bossKillTimes = {};
+        let lastNotificationState = {};
+        const notificationSound = document.getElementById('notificationSound');
+        let currentSort = 'time'; // 'time' или 'name'
+
+        // Элементы управления сортировкой
+        const sortTimeBtn = document.getElementById('sortTimeBtn');
+        const sortNameBtn = document.getElementById('sortNameBtn');
+
+        sortTimeBtn.addEventListener('click', () => {
+            currentSort = 'time';
+            sortTimeBtn.classList.add('active');
+            sortNameBtn.classList.remove('active');
+            renderBossList();
+        });
+
+        sortNameBtn.addEventListener('click', () => {
+            currentSort = 'name';
+            sortNameBtn.classList.add('active');
+            sortTimeBtn.classList.remove('active');
+            renderBossList();
+        });
+
+        function initTimers() {
+            const savedTimes = localStorage.getItem('rqBossTimers');
+            if (savedTimes) {
+                bossKillTimes = JSON.parse(savedTimes);
+            } else {
+                const currentTime = new Date().getTime();
+                bossData.forEach(boss => {
+                    bossKillTimes[boss.name] = currentTime;
+                    lastNotificationState[boss.name] = false;
+                });
+                localStorage.setItem('rqBossTimers', JSON.stringify(bossKillTimes));
+            }
+
+            bossData.forEach(boss => {
+                if (!lastNotificationState.hasOwnProperty(boss.name)) {
+                    lastNotificationState[boss.name] = false;
+                }
+            });
+
+            renderBossList();
+        }
+
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function playNotificationSound() {
+            if (document.getElementById('soundNotification').checked) {
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(e => console.log("Автовоспроизведение заблокировано:", e));
+            }
+        }
+
+        function bossKilled(bossName) {
+            bossKillTimes[bossName] = new Date().getTime();
+            lastNotificationState[bossName] = false;
+            localStorage.setItem('rqBossTimers', JSON.stringify(bossKillTimes));
+            renderBossList();
+        }
+
+        function updateTimers() {
+            renderBossList();
+        }
+
+        function renderBossList() {
+            const bossList = document.getElementById('bossList');
+            bossList.innerHTML = '';
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const now = new Date();
+            let availableBosses = 0;
+
+            // Создаем массив с данными для сортировки
+            let bossesForRender = bossData.map(boss => {
+                if (searchTerm && !boss.name.toLowerCase().includes(searchTerm)) {
+                    return null;
+                }
+
+                const killTime = bossKillTimes[boss.name] || now.getTime();
+                const timeDiff = now.getTime() - killTime;
+                const respawnMs = boss.respawnTime * 60 * 1000;
+                const timeLeft = respawnMs - timeDiff;
+                const isAvailable = timeLeft <= 0;
+
+                return {
+                    ...boss,
+                    killTime,
+                    timeDiff,
+                    respawnMs,
+                    timeLeft,
+                    isAvailable,
+                    spawnTime: new Date(killTime + respawnMs)
+                };
+            }).filter(boss => boss !== null);
+
+            // Сортируем боссов
+            if (currentSort === 'time') {
+                bossesForRender.sort((a, b) => a.timeLeft - b.timeLeft);
+            } else {
+                bossesForRender.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            // Отрисовываем отсортированный список
+            bossesForRender.forEach(boss => {
+                const { name, timeLeft, isAvailable, spawnTime } = boss;
+
+                if (isAvailable) availableBosses++;
+
+                // Проверяем, нужно ли проиграть звук
+                if (isAvailable && !lastNotificationState[name]) {
+                    playNotificationSound();
+                    lastNotificationState[name] = true;
+                } else if (!isAvailable) {
+                    lastNotificationState[name] = false;
+                }
+
+                let timerText, timerClass, spawnTimeText = '';
+
+                if (isAvailable) {
+                    timerText = "✓ Доступен для боя!";
+                    timerClass = "active";
+                    spawnTimeText = `Появился в ${formatTime(spawnTime)}`;
+                } else if (timeLeft < 60000) {
+                    timerText = `⌛ Скоро появится (${Math.ceil(timeLeft/1000)} сек)`;
+                    timerClass = "coming-soon";
+                    spawnTimeText = `Появится в ${formatTime(spawnTime)}`;
+                } else {
+                    const hours = Math.floor(timeLeft / (60 * 60 * 1000));
+                    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                    const seconds = Math.floor((timeLeft % (60 * 1000)) / 1000);
+                    timerText = hours > 0
+                        ? `⏳ Появится через: ${hours}ч ${minutes}м ${seconds}с`
+                        : `⏳ Появится через: ${minutes}м ${seconds}с`;
+                    timerClass = "time-passed";
+                    spawnTimeText = `Появится в ${formatTime(spawnTime)}`;
+                }
+
+                const bossCard = document.createElement('div');
+                bossCard.className = 'boss-card';
+                bossCard.innerHTML = `
+                    <div class="boss-name">${name}</div>
+                    <div class="boss-timer ${timerClass}">${timerText}</div>
+                    <div class="boss-spawn-time">${spawnTimeText}</div>
+                `;
+
+                bossCard.addEventListener('click', () => bossKilled(name));
+                bossList.appendChild(bossCard);
+            });
+
+            // Обновляем заголовок с количеством доступных боссов
+            if (availableBosses > 0) {
+                document.querySelector('h1').innerHTML = `
+                    <span class="header-icon">RQ</span>
+                    Таймер боссов <small>(${availableBosses} доступно)</small>
+                `;
+            } else {
+                document.querySelector('h1').innerHTML = `
+                    <span class="header-icon">RQ</span>
+                    Таймер боссов
+                `;
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderBossList);
+        setInterval(updateTimers, 1000);
+        window.onload = initTimers;
+    </script>
+</body>
+</html>
