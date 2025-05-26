@@ -1,2 +1,1 @@
 # rqTimerBot
-timerBot для своих)
